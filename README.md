@@ -17,6 +17,7 @@ CONV2D -> RELU -> MAXPOOL -> CONV2D -> RELU -> MAXPOOL -> FLATTEN -> FULLYCONNEC
 
 
 List of features to implement:
+
   Convolutional 2d layer function
   Relu function on nodes
 	Maxpool function
