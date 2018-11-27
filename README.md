@@ -17,11 +17,11 @@ CONV2D -> RELU -> MAXPOOL -> CONV2D -> RELU -> MAXPOOL -> FLATTEN -> FULLYCONNEC
 
 
 List of features to implement:
-Convolutional 2d layer function
-Relu function on nodes
-Maxpool function
-Flatten Function
-Fully Connected Layer functions
-softmax
+  Convolutional 2d layer function
+  Relu function on nodes
+	Maxpool function
+	Flatten Function
+	Fully Connected Layer functions
+	softmax
 
 An object called "model" that can have all of those functions parse through it at the same time. 
