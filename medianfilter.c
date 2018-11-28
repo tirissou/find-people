@@ -23,7 +23,7 @@ int write_ppm(image im, const char *fn)
 	fp = fopen(fn, "w");
 	if (!fp) return 0;
 
-	fprintf(fp, "P6\n%d %d\n255\n", im->width, im->height);
+	fprintf(fp, "P6\n%d %d\n%d\n", im->width, im->height,255);
 	fwrite(im->pix[0], 1, sizeof(rgb_t) * im->width * im->height, fp);
 
 	fclose(fp);
@@ -33,8 +33,8 @@ int write_ppm(image im, const char *fn)
 image img_new(int w, int h)
 {
 	int i;
-	image im = malloc(sizeof(image_t) + h * sizeof(rgb_t*)
-			+ sizeof(rgb_t) * w * h);
+	image im = malloc(sizeof(image_t) + (h  * w * sizeof(rgb_t*))
+				+ (sizeof(rgb_t) * w * h));
 	im->width = w; im->height = h;
 	im->pix = (rgb_t**)(im + 1);
 	for (im->pix[0] = (rgb_t*)(im->pix + h), i = 1; i < h; i++)
@@ -85,7 +85,9 @@ void del_pixels(image im, int row, int col, int size, color_histo_t *h)
  
 	if (col < 0 || col >= im->height) return;
 	for (i = row - size; i <= row + size && i < im->height; i++) {
-		if (i < 0) continue;
+		if (i < 0){ 
+		    continue;
+		}
 		pix = im->pix[i] + col;
 		h->r[pix->r]--;
 		h->g[pix->g]--;
@@ -99,8 +101,12 @@ void add_pixels(image im, int row, int col, int size, color_histo_t *h)
 	int i;
 	rgb_t *pix;
  
-	if (col < 0 || col >= im->height) return;
-	for (i = row - size; i <= row + size && i < im->height; i++) {
+	if (col < 0 || col >= im->height) 
+	{
+	 
+	    return;
+	}
+	    for (i = row - size; i <= row + size && i < im->height; i++) {
 		if (i < 0) continue;
 		pix = im->pix[i] + col;
 		h->r[pix->r]++;
