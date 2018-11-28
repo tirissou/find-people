@@ -17,12 +17,15 @@ typedef struct {
 	int n;
 } color_histo_t; //histogram
  
-int write_ppm(image im, char *fn)
+int write_ppm(image im, const char *fn)
 {
-	FILE *fp = fopen(fn, "w");
+	FILE *fp;
+	fp = fopen(fn, "w");
 	if (!fp) return 0;
+
 	fprintf(fp, "P6\n%d %d\n255\n", im->width, im->height);
 	fwrite(im->pix[0], 1, sizeof(rgb_t) * im->width * im->height, fp);
+
 	fclose(fp);
 	return 1;
 }
