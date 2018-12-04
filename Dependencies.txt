@@ -1,0 +1,32 @@
+To run the CNN, you have to have Bazel installed. 
+Bazel is googles build system, and its what tensorflow is built off of.
+
+For ubuntu installation, (16.04), I did:
+	sudo apt-get install pkg-config zip g++ zlib1g-dev unzip python
+
+Then, you have to download bazel. you have to download the right binary installer, and they are found in this gihub. 
+The downloads follow this type of scheme: bazel-<version>-installer-linux-x86_64.sh 
+
+And they can be found on this github link:
+https://github.com/bazelbuild/bazel/releases
+
+After downloading the right installer, you have to run it. Use these following commands (if you're on linux):
+	chmod +x bazel-<version>-installer-linux-x86_64.sh
+
+	./bazel-<version>-installer-linux-x86_64.sh --user 
+
+**DO not SUDO the second command-- itll send bazel to your usr/local/ directory, which will be a HUGE headache later on. 
+The reason why the --user option is there is to make sure bazel is installed in the $HOME/bin directory.
+
+If you did sudo the last installer command, this next step is necessary. Otherwise, this next command, adding this directory onto your default paths.
+The command is:
+	export PATH="$PATH:$HOME/bin" 
+
+If you want, you can add that export path command into your ~/.bashrc profile.
+
+Excellent. 
+Bazel is now installed. 
+If you want to know how to use bazel, follow along. 
+
+
+
