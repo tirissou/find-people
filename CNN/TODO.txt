@@ -1,0 +1,15 @@
+To make a CNN -- i assume a CNN class object here
+
+
+We need to be able to convolutional Layers -- from which we pass filter objects from one layer to another
+Maxpool layers -- maxpools the filter object
+a flatten function to feed into fully connected layers
+Fully Connected layers 
+Softmax output
+
+For all 
+For all layers, we need to have activation (leaky relu)
+
+For all initial variables for those layers, we need to have variable initalizers. We should implement Xaiver inialization or He initialization, whichever one is easier.
+
+
