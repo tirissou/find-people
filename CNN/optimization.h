@@ -19,3 +19,4 @@ static void update_gradient(graident_t&grad)
 {
 	grad.oldGradient = (grad.gradient + gradient.oldGradient * MOMENTUM);
 }
+
