@@ -7,7 +7,7 @@ a flatten function to feed into fully connected layers
 Fully Connected layers 
 Softmax output
 
-For all 
+For all fully connected layers, we need dropout
 For all layers, we need to have activation (leaky relu)
 
 For all initial variables for those layers, we need to have variable initalizers. We should implement Xaiver inialization or He initialization, whichever one is easier.
