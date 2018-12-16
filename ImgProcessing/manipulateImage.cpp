@@ -112,13 +112,25 @@ CImg<double> medianFilter(int kernelSize, CImg<double> * input) {
 }
 
 int main (int argc, char **argv) {
-    if (argc != 3) {
+    if (argc < 3) {
 	cout << "Incorrect number of arguments.  Usage: " << endl;
 	cout << "cimg-demo input_file output_file" << endl;
 	return -1;
     }
 
-
+    int mean=0, median=0, inversion=0;
+    
+    for (int x = 2; x<argc; x++) {
+	if (strcmp(argv[x],"--mean")==0) {
+	    mean=1;
+	}	    
+	if (strcmp(argv[x],"--median")==0) {
+	    median=1;
+	}	    
+	if (strcmp(argv[x],"--invert")==0) {
+	    inversion=1;
+	}	    
+    } 
 
     char *input_file = argv[1];
     char *output_file = argv[2];
@@ -129,9 +141,12 @@ int main (int argc, char **argv) {
     CImg<double> input(input_file);
 
 
-    invert(&input);
-    input = medianFilter(9, &input);
-    input = meanFilter(9, &input);
+    if (inversion) 
+	invert(&input);
+    if (median)
+	input = medianFilter(3, &input);
+    if (mean)
+	input = meanFilter(9, &input);
 
     input.save(output_file);
 
