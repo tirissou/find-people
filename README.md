@@ -24,7 +24,7 @@ Third, we tried to compare that with our original model in python, which is the 
   e. Yad2k
   
 # BenchMarks:
-![alt text](https://lh3.googleusercontent.com/LsjQvOmlvje-OCKK9VNgoWg2YnjmQXDLOEcW4khl5bEXMPQ6Y1anMcLSsu2IcOKsT7Vn8oD6ukN5cdmixo547cGlMw9akQnXWbLnzgiP)
+![alt text](https://github.com/tirissou/find-people/blob/master/oops.jpg)
 
 # The dataset
 The dataset that we used for most of the training until Austin finished his data compilation is here.
