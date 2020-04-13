@@ -1,0 +1,242 @@
+This doc is used to explain how to use bazel, and its use in the Convolutional Neural Network. I'm following Googles examples here:https://docs.bazel.build/versions/master/tutorial/cpp.html 
+
+However, that tutorial is not geared toward anything specific, where this one is.
+
+Bazel should be installed. Now, clone this repo somewhere that can be accessed by your /usr/bin directory, because thats where bazel lives.
+
+	git clone https://github.com/bazelbuild/examples/
+
+The sample project, provided by google for this tutorial, is provided here.
+examples
+└── cpp-tutorial
+    ├──stage1
+    │  ├── main
+    │  │   ├── BUILD
+    │  │   └── hello-world.cc
+    │  └── WORKSPACE
+    ├──stage2
+    │  ├── main
+    │  │   ├── BUILD
+    │  │   ├── hello-world.cc
+    │  │   ├── hello-greet.cc
+    │  │   └── hello-greet.h
+    │  └── WORKSPACE
+    └──stage3
+       ├── main
+       │   ├── BUILD
+       │   ├── hello-world.cc
+       │   ├── hello-greet.cc
+       │   └── hello-greet.h
+       ├── lib
+       │   ├── BUILD
+       │   ├── hello-time.cc
+       │   └── hello-time.h
+       └── WORKSPACE
+
+Googles tutorial is set up in 3 stages. Stage 1 is an example of a project with the build and cc files outside of the workspace, Stage 2 is an example of a project with multiple targets in the same directory, while still having the main outside of the workspace, and stage 3, is the most realistic one. Its where there are multiple build programs, across multiple directories, and different workspaces. 
+Tensorflow is exactly of these "stage 3" examples.
+
+What does bazel really do?
+Most C, C++, and other lower level programs need to link their files together. This way, when you compile the programs, it knows where the external files ARE. "MAKE" is a commonly used as well, especially to compile with gcc, but Google created Bazel in house and continues to support it while releasing it opensource. So when I write "bazel builds this, bazel builds that", it really means that it links the files together so they can access eachother's functionality as directed. Be it an executable, a library, all of it is able to be "built".
+
+
+
+Building with Bazel
+Setting up the workspace.
+Before building, the workspace is a directory that holds your projects source files and bazel's build outputs. Its where Bazel recognizes the very important files:
+	The workspace file, which tells bazel that this is where you are working. This is what lives at the ROOT of the projects directory structure.
+	One or more BUILD files, which tells bazel how to build different parts of the project. If there's more than 1 BUILD file, its called a "package". We will get to it later.
+
+Understanding a BUILD file:
+A BUILD file contains several different types of instructions for Bazel. The critical rule is the "build" rule, which tells bazel how to build the desired outputs, such as executable binaries or libraries. Every build rule in the BUILD file is called a TARGET and points to a specific set of source files and dependencies. These are targets to build, or are files that bazel will compile and build. These are instructions to build a lego house, and the files are various lego parts to do so.
+
+The the BUILD file in the cpp-tutorial/stage1/main directory is :
+cc_binary(
+    name = "hello-world",
+    srcs = ["hello-world.cc"],
+)
+
+The hello-world target instantiates Bazel's cc_binary rule. This is a specific rule for Bazel to make an executable binary from "hello-world.cc" source file with no dependencies.
+
+The attributes ("stuff that it equals") inside the TARGET explicitly say its dependencies and options. The "name" option is mandatory-- unlike make, it won't make an a.out file. Rather, itll fail. Name is the name of the executable that it builds, and srcs tells bazel what source files to build onto the target.
+
+Go to the sample project. cd into cpp-tutorial/stage1 directory and run:
+	bazel build //main:hello-world
+The //main: part is the location relative to the BUILD part of the workspace, and hello-world is what we named that target in the build file. 
+Now, Bazel has output a bunch of directories: bazel-bin, bazel-out,  bazel-testlogs, bazel-genfiles,bazel-stage1
+
+cd into bazel-bin and you find "main" and hello-world as a directory. 
+
+you can either cd into bazel-bin/main/ and ./hello-world, but the beauty is that you can just run bazel-bin/main/hello-world and get the same output.
+
+Review the Dependency Graph:
+Google has this habit of making a lot of useful graphs to visualize the flow of a program-- with tensorboard, and also with bazel's built in graphs. 
+
+A successful build has all of its dependencies explicitly stated in the BUILD file. Bazel uses those statements to create the project’s dependency graph, which enables accurate incremental builds.
+
+You can vizualize the sample projects dependencies, by generating a text representation of the dependency graph with the following command: (run it at the workspace root)
+
+	bazel query --nohost_deps --noimplicit_deps 'deps(//main:hello-world)' \
+  		--output graph
+
+The output of that is a mess. We can use GraphViz and xDot to generate a good picture
+On linux, you can view the graph locally by installing GraphViz and xDot
+	sudo apt update && sudo apt install graphviz xdot
+
+Then, you can generate and view the graph with this following command:
+	xdot <(bazel query --nohost_deps --noimplicit_deps 'deps(//main:hello-world)' \
+	  --output graph)	
+
+Excellent. Lets complicate things.
+
+For small projects, 1 build target may suffice, but for larger ones,  you may want to split larger projects into multiple targets and packages to allow for fast incremental builds (that is, only rebuild what’s changed) and to speed up your builds by building multiple parts of a project at once.
+
+Lets see what specifiying multiple build targets looks like:
+Take a look at the BUILD file in the cpp-tutorial/stage2/main directory:
+
+cc_library(
+    name = "hello-greet",
+    srcs = ["hello-greet.cc"],
+    hdrs = ["hello-greet.h"],
+)
+
+cc_binary(
+    name = "hello-world",
+    srcs = ["hello-world.cc"],
+    deps = [
+        ":hello-greet",
+    ],
+)
+
+
+With this build file, Bazel first builds the hello-greet library, then the hello-world binary. The deps attribute in the hello-world binary is used to show that the hello greet library is necessary.
+
+So lets build this and see what we get: cd into cpp-tutorial/stage2 and see:
+	bazel build //main:hello-world
+
+now test it: 
+	bazel-bin/main/hello-world
+
+Now to look at the graph, we can run the command again:
+	xdot <(bazel query --nohost_deps --noimplicit_deps 'deps(//main:hello-world)' \
+	  --output graph)	
+
+Now using multiple packages:
+look at cpp-tutorial/stage3:
+└──stage3
+   ├── main
+   │   ├── BUILD
+   │   ├── hello-world.cc
+   │   ├── hello-greet.cc
+   │   └── hello-greet.h
+   ├── lib
+   │   ├── BUILD
+   │   ├── hello-time.cc
+   │   └── hello-time.h
+   └── WORKSPACE
+
+We have 2 sub-directories, main and lib, each with their Build file. To bazel, there are two packages, lib, and main.
+
+look at the lib/BUILD file.
+cc_library(
+    name = "hello-time",
+    srcs = ["hello-time.cc"],
+    hdrs = ["hello-time.h"],
+    visibility = ["//main:__pkg__"],
+)
+
+and the main/BUILD file:
+cc_library(
+    name = "hello-greet",
+    srcs = ["hello-greet.cc"],
+    hdrs = ["hello-greet.h"],
+)
+
+cc_binary(
+    name = "hello-world",
+    srcs = ["hello-world.cc"],
+    deps = [
+        ":hello-greet",
+        "//lib:hello-time",
+    ],
+)
+
+The hello-world target in the main package depends on the hello-time target in the lib package (hence the target label //lib:hello-time) - Bazel knows this through the deps attribute. Take a look at the dependency graph:
+
+	xdot <(bazel query --nohost_deps --noimplicit_deps 'deps(//main:hello-world)' \
+	  --output graph)	
+Notice that for the build to succeed, we make the //lib:hello-time target in lib/BUILD explicitly visible to targets in main/BUILD using the visibility attribute. This is because by default targets are only visible to other targets in the same BUILD file. (Bazel uses target visibility to prevent issues such as libraries containing implementation details leaking into public APIs.)
+
+Using labels to reference targets:
+In  BUILD files and at the command line, Bazel uses labels to reference targets - for example, //main:hello-world or //lib:hello-time. Their syntax is:
+	//path/to/package:target-name
+If the target is a rule target, then path/to/package is the path to the directory containing the BUILD file, and target-name is what you named the target in the BUILD file (the name attribute). If the target is a file target, then path/to/package is the path to the root of the package, and target-name is the name of the target file, including its full path.
+
+When referencing targets within the same package, you can skip the package path and just use //:target-name. When referencing targets within the same BUILD file, you can even skip the // workspace root identifier and just use :target-name.
+
+Excellent. Now we have a basic grasp of Bazel. Now lets look at commmon C++ use cases and external libararies.
+
+
+First, C++ development often requires multiple files to be compiled into a target. You can include multiple filse in a single target with "glob"
+For exmaple:
+cc_library(
+    name = "build-all-the-files",
+    srcs = glob(["*.cc"]),
+    hdrs = glob(["*.h"]),
+)
+
+With this target, bazel will include all the .cc and .h files into the sources (but not the subdirectories)
+
+Using Transitive includes( includes statements off of other includes)
+If a file includes a header, then the file’s rule should depend on that header’s library. Conversely, only direct dependencies need to be specified as dependencies. 
+For example, suppose sandwich.h includes bread.h and bread.h includes flour.h. sandwich.h doesn’t include flour.h (who wants flour in their sandwich?), so the BUILD file would look like this:
+cc_library(
+    name = "sandwich",
+    srcs = ["sandwich.cc"],
+    hdrs = ["sandwich.h"],
+    deps = [":bread"],
+)
+
+cc_library(
+    name = "bread",
+    srcs = ["bread.cc"],
+    hdrs = ["bread.h"],
+    deps = [":flour"],
+)
+
+cc_library(
+    name = "flour",
+    srcs = ["flour.cc"],
+    hdrs = ["flour.h"],
+)
+
+Excellent. Now to use external libraries, like tensorflow, we make the following:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
